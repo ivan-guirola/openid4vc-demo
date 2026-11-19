@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Verifiable credentials with SD-JWT</title>
+    <meta
+      name="description"
+      content="Get a digital card from an issuer, keep it in a wallet and show a verifier only what it needs. OpenID4VCI, OpenID4VP and SD-JWT running in your browser."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <main>
+      <header class="head">
+        <p><a href="https://ivan-guirola.github.io/projects/">Iván Guirola, projects</a></p>
+        <h1>Verifiable credentials with SD-JWT</h1>
+        <p class="lead">
+          City Hall gives you a digital resident card. A cinema needs to know you are an adult, and nothing else. Try
+          it: you decide what the cinema sees.
+        </p>
+      </header>
+
+      <div class="places">
+        <section class="place" data-vc="issuer">
+          <header>
+            <h2>City Hall</h2>
+            <p>Issues the card</p>
+          </header>
+          <form data-vc="form">
+            <label>First name <input name="given_name" value="Ana" required autocomplete="off" /></label>
+            <label>Family name <input name="family_name" value="García" required autocomplete="off" /></label>
+            <label>Date of birth <input name="birthdate" type="date" value="1990-04-12" required /></label>
+            <label>City <input name="locality" value="Barcelona" required autocomplete="off" /></label>
+            <button class="btn" type="submit" data-vc="issue">Issue my resident card</button>
+          </form>
+          <p class="status" data-vc="issuer-status" role="status"></p>
+        </section>
+
+        <section class="place wallet" data-vc="wallet">
+          <header>
+            <h2>Your wallet</h2>
+            <p>Only you hold it</p>
+          </header>
+          <p class="empty" data-vc="wallet-empty">No cards yet. Ask City Hall for yours.</p>
+          <div class="card" data-vc="card" hidden>
+            <div class="card-head">
+              <strong data-vc="card-name"></strong>
+              <span data-vc="card-issuer"></span>
+            </div>
+            <dl data-vc="card-claims"></dl>
+          </div>
+          <form class="ask" data-vc="ask" hidden>
+            <h3><span data-vc="ask-who"></span> asks for</h3>
+            <p>Tick what you want to share. The rest stays in your wallet.</p>
+            <div data-vc="ask-claims"></div>
+            <div class="buttons">
+              <button class="btn" type="submit" data-vc="share">Share</button>
+              <button class="btn quiet" type="button" data-vc="decline">Decline</button>
+            </div>
+          </form>
+          <details class="tech" data-vc="raw-block" hidden>
+            <summary>The card as it is stored</summary>
+            <pre data-vc="raw"></pre>
+          </details>
+        </section>
+
+        <section class="place" data-vc="verifier">
+          <header>
+            <h2>Cinema</h2>
+            <p>Checks the card</p>
+          </header>
+          <p>The film is for adults only. The cinema asks your wallet for proof.</p>
+          <button class="btn" type="button" data-vc="buy">Buy a ticket</button>
+          <p class="status" data-vc="verifier-status" role="status"></p>
+          <div class="result" data-vc="result" hidden>
+            <h3>What the cinema learned</h3>
+            <dl data-vc="learned"></dl>
+            <h3>What it never saw</h3>
+            <p data-vc="unseen"></p>
+            <h3>What it checked</h3>
+            <ul class="checks" data-vc="checks"></ul>
+          </div>
+          <details class="tech" data-vc="token-block" hidden>
+            <summary>The token the cinema received</summary>
+            <p class="token-note">
+              One SD-JWT made of three parts joined by <code>~</code>: the card signed by City Hall, the pieces you chose
+              to reveal, and a proof signed by your wallet for this purchase.
+            </p>
+            <h4>As it arrived</h4>
+            <pre class="token-raw" data-vc="token-raw"></pre>
+            <h4>1. The card, signed by City Hall</h4>
+            <p class="token-note">The fields are hidden: only their fingerprints (<code>_sd</code>) travel here.</p>
+            <pre data-vc="token-issuer"></pre>
+            <h4>2. What you revealed</h4>
+            <p class="token-note">Each piece is a salt, a field name and its value. Its fingerprint must be in the card.</p>
+            <pre data-vc="token-disclosures"></pre>
+            <h4>3. The proof from your wallet</h4>
+            <p class="token-note">Signed with the key the card was issued to, for this cinema and this purchase only.</p>
+            <pre data-vc="token-binding"></pre>
+          </details>
+        </section>
+      </div>
+
+      <details class="tech log">
+        <summary>What travelled between them <span data-vc="log-count"></span></summary>
+        <ol data-vc="log"></ol>
+      </details>
+
+      <section class="about">
+        <h2>What you just saw</h2>
+        <ul>
+          <li>
+            <strong>The card is yours.</strong> City Hall signs it once and is not contacted again when you show it.
+          </li>
+          <li>
+            <strong>You share one fact, not the whole card.</strong> The cinema can check that fact is genuine without
+            seeing the rest.
+          </li>
+          <li>
+            <strong>A copy is useless.</strong> Each answer is signed by your wallet for that one request.
+          </li>
+        </ul>
+        <p>
+          Under the surface the three parties speak OpenID for Verifiable Credential Issuance, OpenID for Verifiable
+          Presentations and SD-JWT. In this page they run in your browser and nothing is sent anywhere; the same code
+          runs over HTTP in the
+          <a href="https://github.com/ivan-guirola/openid4vc-demo">repository</a>.
+        </p>
+        <p>This demo was created for educational purposes or to support my day-to-day work.</p>
+      </section>
+
+      <nav class="more" aria-label="More projects">
+        <div class="more-pair">
+          <a href="https://ivan-guirola.github.io/tools/passkeys/"><span>Previous</span><strong>Passkey demo</strong></a>
+          <a href="https://ivan-guirola.github.io/tools/debugger/"><span>Next</span><strong>Token debugger</strong></a>
+        </div>
+        <p class="more-rest">
+          <a href="https://ivan-guirola.github.io/tools/scim-lifecycle/">SCIM lifecycle viewer</a>
+          <a href="https://ivan-guirola.github.io/tools/saviynt-username/">Saviynt username rule builder</a>
+          <a href="https://ivan-guirola.github.io/tools/okta-expression/">Okta expression tester</a>
+          <a href="https://ivan-guirola.github.io/tools/journey/">Ping AM journey viewer</a>
+          <a href="https://ivan-guirola.github.io/tools/oauth-flow/">OAuth flow picker</a>
+          <a href="https://ivan-guirola.github.io/tools/metadata/">Federation metadata checker</a>
+          <a href="https://ivan-guirola.github.io/projects/keycloak-csv-claim-mapper/">Keycloak CSV claim mapper</a>
+          <a href="https://ivan-guirola.github.io/projects/keycloak-spi-template/">Keycloak SPI template</a>
+          <a href="https://ivan-guirola.github.io/projects/">All projects</a>
+        </p>
+      </nav>
+    </main>
+    <script type="module" src="/src/web/main.ts"></script>
+  </body>
+</html>
