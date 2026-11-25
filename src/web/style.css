@@ -694,14 +694,6 @@ input[type='checkbox'] {
   color: var(--danger);
   font-weight: 550;
 }
-.plain {
-  display: grid;
-  gap: 0.6rem;
-  max-width: 48rem;
-  margin: 0;
-  padding-left: 1.2rem;
-  color: var(--muted);
-}
 
 /* Details inside each place */
 .received .decoded {

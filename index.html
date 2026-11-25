@@ -100,14 +100,6 @@
       </div>
 
       <section class="inside" id="inside" data-vc="inside" hidden>
-        <header>
-          <h2>After the purchase</h2>
-          <p class="lead">
-            Nothing in this flow is encrypted: City Hall signs the card, every field hides behind a fingerprint and your
-            wallet signs each answer. The trip itself is protected by HTTPS.
-          </p>
-        </header>
-
         <div class="block">
           <h3>What each party has</h3>
           <div class="table-wrap"><table class="holds" data-vc="holds"></table></div>
@@ -119,24 +111,6 @@
           <button class="btn quiet" type="button" data-vc="tamper">Change it and send again</button>
           <div class="tampered" data-vc="tampered" hidden></div>
         </div>
-
-        <div class="block">
-          <h3>What real deployments add</h3>
-          <ul class="plain">
-            <li>
-              The answer to the verifier can also be encrypted for it alone (OpenID4VP <code>direct_post.jwt</code>, a JWE
-              with ECDH-ES), so only the verifier can read it, even where HTTPS ends at a proxy along the way.
-            </li>
-            <li>
-              The card shows the same signature and wallet key to every verifier, so two of them could tell it is the
-              same card. Wallets avoid this by holding several copies of it and using each copy once.
-            </li>
-            <li>
-              The wallet keeps its private key in the phone’s secure hardware, and City Hall can revoke the card through
-              a status list.
-            </li>
-          </ul>
-        </div>
       </section>
 
       <details class="tech log">
@@ -145,23 +119,6 @@
       </details>
 
       <section class="about">
-        <h2>What you just saw</h2>
-        <ul>
-          <li>
-            <strong>The card is yours.</strong> City Hall signs it once and is not contacted again when you show it.
-          </li>
-          <li>
-            <strong>You share one fact, not the whole card.</strong> The cinema can check that fact is genuine without
-            seeing the rest.
-          </li>
-          <li>
-            <strong>A copy is useless.</strong> Each answer is signed by your wallet for that one request.
-          </li>
-          <li>
-            <strong>Nothing is secret, everything is checkable.</strong> Signatures and fingerprints protect the card,
-            not encryption.
-          </li>
-        </ul>
         <p>
           Under the surface the three parties speak OpenID for Verifiable Credential Issuance, OpenID for Verifiable
           Presentations and SD-JWT. In this page they run in your browser and nothing is sent anywhere; the same code
