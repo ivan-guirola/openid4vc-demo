@@ -390,7 +390,7 @@ function tampering(root: HTMLElement, data: InsideData, result: Inspection) {
 }
 
 export async function renderInside(root: HTMLElement, data: InsideData) {
-  const find = (name: string) => root.querySelector<HTMLElement>(`[data-vc="${name}"]`)!;
+  const find = (name: string) => document.querySelector<HTMLElement>(`[data-vc="${name}"]`)!;
   const result = await inspect({
     credential: data.credential,
     presentation: data.presentation,
@@ -406,4 +406,5 @@ export async function renderInside(root: HTMLElement, data: InsideData) {
   steps(find('steps'), data, result);
   tampering(root, data, result);
   root.hidden = false;
+  find('received').hidden = false;
 }

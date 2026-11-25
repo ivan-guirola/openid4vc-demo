@@ -80,10 +80,22 @@
             <dl data-vc="learned"></dl>
             <h3>What it never saw</h3>
             <p data-vc="unseen"></p>
-            <h3>What it checked</h3>
-            <ul class="checks" data-vc="checks"></ul>
           </div>
-          <p class="jump" data-vc="jump" hidden><a href="#inside">See what travelled inside the token</a></p>
+          <div class="detail received" data-vc="received" hidden>
+            <h3>The token it received</h3>
+            <p class="note">
+              One string with three parts joined by <code>~</code>. Each JWT inside is three Base64url pieces joined by
+              a dot: header, content and signature. Base64url only makes the text safe to send; anyone can read it.
+            </p>
+            <ul class="legend" data-vc="legend"></ul>
+            <pre class="raw" data-vc="parts"></pre>
+            <div class="decoded" data-vc="decoded"></div>
+            <h3>How it checked it</h3>
+            <ol class="steps" data-vc="steps"></ol>
+          </div>
+          <p class="jump" data-vc="jump" hidden>
+            <a href="#inside">Below: who holds each key, what each party ended up with, and a forged answer</a>
+          </p>
         </section>
       </div>
 
@@ -118,22 +130,6 @@
             stops anyone guessing it by trying every date or a simple “true”. Open a field to follow the steps.
           </p>
           <ul class="fields" data-vc="fields"></ul>
-        </div>
-
-        <div class="block">
-          <h3>The token the cinema received</h3>
-          <p class="note">
-            One string with three parts joined by <code>~</code>. Each JWT inside is three Base64url pieces joined by a
-            dot: header, content and signature. Base64url only makes the text safe to send; anyone can read it back.
-          </p>
-          <ul class="legend" data-vc="legend"></ul>
-          <pre class="raw" data-vc="parts"></pre>
-          <div class="decoded" data-vc="decoded"></div>
-        </div>
-
-        <div class="block">
-          <h3>How the cinema checks it</h3>
-          <ol class="steps" data-vc="steps"></ol>
         </div>
 
         <div class="block" data-vc="tamper-block">

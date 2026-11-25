@@ -137,11 +137,6 @@ function renderResult(result: Result | undefined, shared: string[]) {
   rows(el('learned'), result.claims);
   const unseen = Object.keys(credential.claims).filter((name) => !shared.includes(name));
   el('unseen').textContent = unseen.length > 0 ? unseen.map((name) => labels[name] ?? name).join(', ') : 'Nothing: you shared the whole card.';
-  el('checks').replaceChildren(
-    make('li', `The card was signed by ${credential.issuerName}`),
-    make('li', 'It was shown by the wallet it was issued to'),
-    make('li', 'The answer was made for this purchase and cannot be reused'),
-  );
   el('result').hidden = false;
 }
 
@@ -168,6 +163,7 @@ async function renderInsideToken(request: PresentationRequest) {
   const keys = logged('/.well-known/jwt-vc-issuer');
   el('jump').hidden = !token;
   el('inside').hidden = true;
+  el('received').hidden = true;
   if (!token || !credential || !keys) return;
 
   const issuerJwk = JSON.parse(keys.response).jwks.keys[0];
@@ -218,6 +214,7 @@ el<HTMLFormElement>('form').addEventListener('submit', async (event) => {
   el('result').hidden = true;
   el('jump').hidden = true;
   el('inside').hidden = true;
+  el('received').hidden = true;
   el('issuer-detail').hidden = true;
   el('request-detail').hidden = true;
   status('verifier-status', '');
@@ -254,6 +251,7 @@ el('buy').addEventListener('click', () => {
     return;
   }
   el('jump').hidden = true;
+  el('received').hidden = true;
   pending = { request, state };
   renderRequestDetail(el('request-detail'), { uri, label: (name) => labels[name] ?? name });
   status('verifier-status', 'Waiting for your wallet…');
@@ -281,6 +279,7 @@ el('decline').addEventListener('click', () => {
   renderWallet();
   el('jump').hidden = true;
   el('inside').hidden = true;
+  el('received').hidden = true;
   status('verifier-status', 'You declined. The cinema learned nothing.');
   focus('verifier');
 });

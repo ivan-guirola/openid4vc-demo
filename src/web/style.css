@@ -1,4 +1,11 @@
 :root {
+  --c-header: #45c8f0;
+  --c-payload: #9483ff;
+  --c-signature: #3ddc97;
+  --c-disclosure: #f2b45c;
+  --c-kb-header: #7fdcf7;
+  --c-kb-payload: #c3b8ff;
+  --c-kb-signature: #8debc2;
   --bg: #07090f;
   --surface: #0d111b;
   --raised: #141a28;
@@ -395,13 +402,6 @@ input[type='checkbox'] {
   font-weight: 550;
 }
 .inside {
-  --c-header: #45c8f0;
-  --c-payload: #9483ff;
-  --c-signature: #3ddc97;
-  --c-disclosure: #f2b45c;
-  --c-kb-header: #7fdcf7;
-  --c-kb-payload: #c3b8ff;
-  --c-kb-signature: #8debc2;
   display: grid;
   gap: clamp(1.8rem, 4vw, 2.6rem);
   margin-top: clamp(2rem, 5vw, 3.5rem);
@@ -627,7 +627,8 @@ input[type='checkbox'] {
 [data-kind='kb-signature'] {
   color: var(--c-kb-signature);
 }
-.inside pre.raw {
+.inside pre.raw,
+.detail pre.raw {
   color: var(--ink);
   max-height: none;
 }
@@ -703,6 +704,22 @@ input[type='checkbox'] {
 }
 
 /* Details inside each place */
+.received .decoded {
+  grid-template-columns: 1fr;
+}
+.received .legend {
+  gap: 0.3rem 0.9rem;
+  font-size: 0.8rem;
+}
+.received .steps {
+  padding-left: 1.3rem;
+}
+.received .steps p {
+  font-size: 0.88rem;
+}
+.received .decoded dt {
+  flex-basis: 4.5rem;
+}
 .detail {
   display: grid;
   gap: 0.8rem;
