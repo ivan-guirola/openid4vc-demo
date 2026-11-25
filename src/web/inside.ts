@@ -1,4 +1,4 @@
-import { decodeJwt, thumbprint, type PublicJwk } from '../lib/jose.ts';
+import type { PublicJwk } from '../lib/jose.ts';
 import { inspect, tamper, type Check, type Field, type Inspection, type Part } from '../lib/inspect.ts';
 
 export interface InsideData {
@@ -6,8 +6,6 @@ export interface InsideData {
   presentation: string;
   issuerJwk: PublicJwk & { kid?: string };
   issuerName: string;
-  keysUrl: string;
-  proof: string | undefined;
   nonce: string;
   audience: string;
   verifierName: string;
@@ -64,59 +62,6 @@ const PROOF_CLAIMS: Record<string, string> = {
 
 function claimNotes(payload: Record<string, unknown>, notes: Record<string, string>) {
   return definitions(Object.keys(payload).flatMap((name) => (notes[name] ? [[name, notes[name]] as [string, string]] : [])));
-}
-
-async function keys(root: HTMLElement, data: InsideData, result: Inspection) {
-  const url = new URL(data.keysUrl);
-  const holderThumbprint = result.holderJwk ? await thumbprint(result.holderJwk) : '';
-  const proof = data.proof ? decodeJwt(data.proof) : undefined;
-
-  const card = (title: string, role: string, entries: Parameters<typeof definitions>[0], ...extra: HTMLElement[]) => {
-    const node = make('article', undefined, 'key');
-    node.append(make('h4', title), make('p', role, 'role'), definitions(entries), ...extra);
-    return node;
-  };
-
-  root.replaceChildren(
-    card(
-      data.issuerName,
-      'Signs the card, once',
-      [
-        ['Key id (kid)', code(data.issuerJwk.kid ?? '')],
-        ['Private part', 'Only at City Hall'],
-        ['Public part', ['Published at ', code(url.host + url.pathname)]],
-      ],
-      folded('Public key', pre(json(data.issuerJwk))),
-    ),
-    card(
-      'Your wallet',
-      'Signs every answer',
-      [
-        ['Thumbprint', code(holderThumbprint)],
-        ['Private part', 'Only in your wallet. It is never sent.'],
-        ['Public part', ['Inside the card, as ', code('cnf.jwk')]],
-      ],
-      folded('Public key', pre(json(result.holderJwk))),
-      ...(proof
-        ? [
-            folded(
-              'How City Hall knew the key was yours',
-              make(
-                'p',
-                'Before issuing, the wallet signed a short proof with this key over a one-time number from City Hall. City Hall checked it, and only then copied the public key into the card.',
-                'note',
-              ),
-              pre(json(proof)),
-            ),
-          ]
-        : []),
-    ),
-    card(data.verifierName, 'Checks, does not sign', [
-      ['Calls itself', code(data.audience)],
-      ['One-time number', code(data.nonce)],
-      ['Keys it uses', 'City Hall’s public key and the one inside the card'],
-    ]),
-  );
 }
 
 function holds(table: HTMLElement, data: InsideData, result: Inspection) {
@@ -205,21 +150,6 @@ export function fieldList(
       item.append(details);
       return item;
     }),
-  );
-}
-
-function fields(list: HTMLElement, data: InsideData, result: Inspection) {
-  fieldList(
-    list,
-    result.fields,
-    result.digests.length,
-    data.label,
-    data.show,
-    (field) => (field.shared ? 'Sent to the cinema' : 'Stayed in your wallet'),
-    (field) =>
-      field.shared
-        ? 'Your wallet sent the disclosure, so the cinema repeated the last two steps, found the fingerprint in the card and read the value.'
-        : 'Your wallet kept the disclosure. The cinema sees this fingerprint in the card but has no way to open it.',
   );
 }
 
@@ -398,14 +328,10 @@ export async function renderInside(root: HTMLElement, data: InsideData) {
     nonce: data.nonce,
     audience: data.audience,
   });
-  await keys(find('keys'), data, result);
   holds(find('holds'), data, result);
-  fields(find('fields'), data, result);
-  for (const suffix of ['', '-full']) {
-    parts(find(`legend${suffix}`), find(`parts${suffix}`), result);
-    decoded(find(`decoded${suffix}`), result);
-    steps(find(`steps${suffix}`), data, result);
-  }
+  parts(find('legend'), find('parts'), result);
+  decoded(find('decoded'), result);
+  steps(find('steps'), data, result);
   tampering(root, data, result);
   root.hidden = false;
   find('received').hidden = false;

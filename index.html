@@ -94,58 +94,23 @@
             <ol class="steps" data-vc="steps"></ol>
           </div>
           <p class="jump" data-vc="jump" hidden>
-            <a href="#inside">Below: who holds each key, what each party ended up with, and a forged answer</a>
+            <a href="#inside">Below: what each party ended up with, and a forged answer</a>
           </p>
         </section>
       </div>
 
       <section class="inside" id="inside" data-vc="inside" hidden>
         <header>
-          <h2>Inside the token</h2>
+          <h2>After the purchase</h2>
           <p class="lead">
-            The real data from your last answer. Nothing here is encrypted: City Hall signs the card, every field is
-            hidden behind a fingerprint, and your wallet signs each answer. The trip itself is protected by HTTPS.
+            Nothing in this flow is encrypted: City Hall signs the card, every field hides behind a fingerprint and your
+            wallet signs each answer. The trip itself is protected by HTTPS.
           </p>
         </header>
 
         <div class="block">
-          <h3>Who holds which key</h3>
-          <p class="note">
-            Both keys are ES256: an elliptic curve key pair (P-256) that signs with ECDSA over a SHA-256 hash. The private
-            part signs, the public part only checks.
-          </p>
-          <div class="keys" data-vc="keys"></div>
-        </div>
-
-        <div class="block">
           <h3>What each party has</h3>
           <div class="table-wrap"><table class="holds" data-vc="holds"></table></div>
-        </div>
-
-        <div class="block">
-          <h3>Each field of the card</h3>
-          <p class="note">
-            City Hall gave every field a random salt, joined it with the name and the value, and put only the SHA-256
-            fingerprint of that in the card it signed. A fingerprint cannot be turned back into the value, and the salt
-            stops anyone guessing it by trying every date or a simple “true”. Open a field to follow the steps.
-          </p>
-          <ul class="fields" data-vc="fields"></ul>
-        </div>
-
-        <div class="block">
-          <h3>The token the cinema received</h3>
-          <p class="note">
-            One string with three parts joined by <code>~</code>. Each JWT inside is three Base64url pieces joined by a
-            dot: header, content and signature. Base64url only makes the text safe to send; anyone can read it back.
-          </p>
-          <ul class="legend" data-vc="legend-full"></ul>
-          <pre class="raw" data-vc="parts-full"></pre>
-          <div class="decoded" data-vc="decoded-full"></div>
-        </div>
-
-        <div class="block">
-          <h3>How the cinema checks it</h3>
-          <ol class="steps" data-vc="steps-full"></ol>
         </div>
 
         <div class="block" data-vc="tamper-block">

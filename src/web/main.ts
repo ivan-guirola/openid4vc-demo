@@ -167,14 +167,11 @@ async function renderInsideToken(request: PresentationRequest) {
   if (!token || !credential || !keys) return;
 
   const issuerJwk = JSON.parse(keys.response).jwks.keys[0];
-  const sent = logged('/credential')?.request;
   await renderInside(el('inside'), {
     credential: credential.raw,
     presentation: token,
     issuerJwk,
     issuerName: credential.issuerName,
-    keysUrl: `${keys.origin}${keys.path}`,
-    proof: sent ? JSON.parse(sent).proofs?.jwt?.[0] : undefined,
     nonce: request.nonce,
     audience: request.verifier,
     verifierName: verifier.name,
