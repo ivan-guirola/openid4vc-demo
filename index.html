@@ -132,6 +132,22 @@
           <ul class="fields" data-vc="fields"></ul>
         </div>
 
+        <div class="block">
+          <h3>The token the cinema received</h3>
+          <p class="note">
+            One string with three parts joined by <code>~</code>. Each JWT inside is three Base64url pieces joined by a
+            dot: header, content and signature. Base64url only makes the text safe to send; anyone can read it back.
+          </p>
+          <ul class="legend" data-vc="legend-full"></ul>
+          <pre class="raw" data-vc="parts-full"></pre>
+          <div class="decoded" data-vc="decoded-full"></div>
+        </div>
+
+        <div class="block">
+          <h3>How the cinema checks it</h3>
+          <ol class="steps" data-vc="steps-full"></ol>
+        </div>
+
         <div class="block" data-vc="tamper-block">
           <h3>What if the wallet lies?</h3>
           <p class="note" data-vc="tamper-intro"></p>

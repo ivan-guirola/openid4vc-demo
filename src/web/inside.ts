@@ -401,9 +401,11 @@ export async function renderInside(root: HTMLElement, data: InsideData) {
   await keys(find('keys'), data, result);
   holds(find('holds'), data, result);
   fields(find('fields'), data, result);
-  parts(find('legend'), find('parts'), result);
-  decoded(find('decoded'), result);
-  steps(find('steps'), data, result);
+  for (const suffix of ['', '-full']) {
+    parts(find(`legend${suffix}`), find(`parts${suffix}`), result);
+    decoded(find(`decoded${suffix}`), result);
+    steps(find(`steps${suffix}`), data, result);
+  }
   tampering(root, data, result);
   root.hidden = false;
   find('received').hidden = false;
