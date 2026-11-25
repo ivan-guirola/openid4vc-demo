@@ -15,19 +15,19 @@ export interface InsideData {
   show: (value: unknown) => string;
 }
 
-const json = (value: unknown) => JSON.stringify(value, null, 2);
+export const json = (value: unknown) => JSON.stringify(value, null, 2);
 
-function make<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, className?: string) {
+export function make<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, className?: string) {
   const node = document.createElement(tag);
   if (text !== undefined) node.textContent = text;
   if (className) node.className = className;
   return node;
 }
 
-const pre = (text: string) => make('pre', text);
-const code = (text: string) => make('code', text);
+export const pre = (text: string) => make('pre', text);
+export const code = (text: string) => make('code', text);
 
-function definitions(entries: [string, string | HTMLElement | (string | HTMLElement)[]][]) {
+export function definitions(entries: [string, string | HTMLElement | (string | HTMLElement)[]][]) {
   const list = make('dl');
   for (const [term, value] of entries) {
     const row = make('div');
@@ -39,7 +39,7 @@ function definitions(entries: [string, string | HTMLElement | (string | HTMLElem
   return list;
 }
 
-function folded(summary: string, ...content: HTMLElement[]) {
+export function folded(summary: string, ...content: HTMLElement[]) {
   const details = make('details', undefined, 'tech');
   details.append(make('summary', summary), ...content);
   return details;
@@ -174,15 +174,19 @@ function holds(table: HTMLElement, data: InsideData, result: Inspection) {
   table.replaceChildren(head, body);
 }
 
-function fields(list: HTMLElement, data: InsideData, result: Inspection) {
+export function fieldList(
+  list: HTMLElement,
+  items: Field[],
+  total: number,
+  label: (name: string) => string,
+  show: (value: unknown) => string,
+  pill: (field: Field) => string,
+  note: (field: Field) => string,
+) {
   list.replaceChildren(
-    ...result.fields.map((field: Field) => {
+    ...items.map((field) => {
       const summary = make('summary');
-      summary.append(
-        make('span', data.label(field.name), 'name'),
-        make('span', data.show(field.value), 'value'),
-        make('span', field.shared ? 'Sent to the cinema' : 'Stayed in your wallet', 'pill'),
-      );
+      summary.append(make('span', label(field.name), 'name'), make('span', show(field.value), 'value'), make('span', pill(field), 'pill'));
       const chain = make('ol', undefined, 'chain');
       const step = (title: string, value: string) => {
         const node = make('li');
@@ -193,20 +197,9 @@ function fields(list: HTMLElement, data: InsideData, result: Inspection) {
       step('Salt, name and value as JSON', JSON.stringify([field.salt, field.name, field.value]));
       step('Encoded as Base64url: this is the disclosure', field.disclosure);
       step('Its SHA-256, also in Base64url: the fingerprint', field.digest);
-      step('Where it sits in the signed card', `_sd[${field.position}] of ${result.digests.length}`);
-
+      step('Where it sits in the signed card', `_sd[${field.position}] of ${total}`);
       const details = make('details');
-      details.append(
-        summary,
-        chain,
-        make(
-          'p',
-          field.shared
-            ? 'Your wallet sent the disclosure, so the cinema repeated the last two steps, found the fingerprint in the card and read the value.'
-            : 'Your wallet kept the disclosure. The cinema sees this fingerprint in the card but has no way to open it.',
-          'note',
-        ),
-      );
+      details.append(summary, chain, make('p', note(field), 'note'));
       const item = make('li');
       item.dataset.shared = String(field.shared);
       item.append(details);
@@ -215,7 +208,22 @@ function fields(list: HTMLElement, data: InsideData, result: Inspection) {
   );
 }
 
-const PART_LABELS: Record<Part['kind'], string> = {
+function fields(list: HTMLElement, data: InsideData, result: Inspection) {
+  fieldList(
+    list,
+    result.fields,
+    result.digests.length,
+    data.label,
+    data.show,
+    (field) => (field.shared ? 'Sent to the cinema' : 'Stayed in your wallet'),
+    (field) =>
+      field.shared
+        ? 'Your wallet sent the disclosure, so the cinema repeated the last two steps, found the fingerprint in the card and read the value.'
+        : 'Your wallet kept the disclosure. The cinema sees this fingerprint in the card but has no way to open it.',
+  );
+}
+
+export const PART_LABELS: Record<Part['kind'], string> = {
   'issuer-header': 'Card header',
   'issuer-payload': 'Card content',
   'issuer-signature': 'City Hall’s signature',
@@ -225,7 +233,7 @@ const PART_LABELS: Record<Part['kind'], string> = {
   'kb-signature': 'Your wallet’s signature',
 };
 
-function parts(legend: HTMLElement, raw: HTMLElement, result: Inspection) {
+export function parts(legend: HTMLElement, raw: HTMLElement, result: Pick<Inspection, 'parts' | 'keyBinding'>) {
   legend.replaceChildren(
     ...Object.entries(PART_LABELS).map(([kind, label]) => {
       const item = make('li', label);

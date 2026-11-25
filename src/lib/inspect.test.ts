@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { generateKey, sha256, type KeyPair } from './jose.ts';
-import { inspect, tamper } from './inspect.ts';
+import { describeCredential, inspect, tamper } from './inspect.ts';
 import { issueSdJwt, present } from './sdjwt.ts';
 
 const now = 1_800_000_000;
@@ -80,6 +80,17 @@ describe('inspect', () => {
     expect(result.sdHashInput.endsWith('~')).toBe(true);
     expect(presentation.startsWith(result.sdHashInput)).toBe(true);
     expect(result.keyBinding?.payload.sd_hash).toBe(await sha256(result.sdHashInput));
+  });
+});
+
+describe('describeCredential', () => {
+  it('opens the stored card with every field hidden behind a signed fingerprint', async () => {
+    const card = await describeCredential(credential);
+    expect(card.issuer.header).toMatchObject({ alg: 'ES256', typ: 'dc+sd-jwt' });
+    expect(card.issuer.payload.cnf.jwk).toEqual(holder.publicJwk);
+    expect(card.fields).toHaveLength(4);
+    expect(card.fields.every((field) => !field.shared && card.digests[field.position] === field.digest)).toBe(true);
+    expect(credential.startsWith(card.jwt)).toBe(true);
   });
 });
 

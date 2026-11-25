@@ -61,16 +61,20 @@ function split(token: string, kinds: [Part['kind'], Part['kind'], Part['kind']])
   return token.split('.').map((text, index) => ({ kind: kinds[index], text }));
 }
 
-/** Breaks a presentation into the pieces the verifier sees and re-runs every check it makes, keeping the values. */
-export async function inspect(options: InspectOptions): Promise<Inspection> {
-  const stored = parseSdJwt(options.credential);
-  const sent = parseSdJwt(options.presentation);
-  const issuer = { ...decodeJwt(sent.jwt), signature: signatureOf(sent.jwt) };
-  const digests: string[] = issuer.payload._sd ?? [];
-  const sentEncoded = new Set(sent.disclosures.map((disclosure) => disclosure.encoded));
+export interface Card {
+  jwt: string;
+  issuer: Jwt & { signature: string };
+  digests: string[];
+  fields: Field[];
+}
 
+/** Opens a stored credential: the signed part and every field with its salt and fingerprint. */
+export async function describeCredential(credential: string, shared: Set<string> = new Set()): Promise<Card> {
+  const { jwt, disclosures } = parseSdJwt(credential);
+  const issuer = { ...decodeJwt(jwt), signature: signatureOf(jwt) };
+  const digests: string[] = issuer.payload._sd ?? [];
   const fields: Field[] = [];
-  for (const disclosure of stored.disclosures) {
+  for (const disclosure of disclosures) {
     const digest = await sha256(disclosure.encoded);
     fields.push({
       name: disclosure.name,
@@ -79,9 +83,18 @@ export async function inspect(options: InspectOptions): Promise<Inspection> {
       disclosure: disclosure.encoded,
       digest,
       position: digests.indexOf(digest),
-      shared: sentEncoded.has(disclosure.encoded),
+      shared: shared.has(disclosure.encoded),
     });
   }
+  return { jwt, issuer, digests, fields };
+}
+
+/** Breaks a presentation into the pieces the verifier sees and re-runs every check it makes, keeping the values. */
+export async function inspect(options: InspectOptions): Promise<Inspection> {
+  const sent = parseSdJwt(options.presentation);
+  const issuer = { ...decodeJwt(sent.jwt), signature: signatureOf(sent.jwt) };
+  const digests: string[] = issuer.payload._sd ?? [];
+  const { fields } = await describeCredential(options.credential, new Set(sent.disclosures.map((disclosure) => disclosure.encoded)));
 
   const keyBinding = sent.keyBinding ? { ...decodeJwt(sent.keyBinding), signature: signatureOf(sent.keyBinding) } : undefined;
   const holderJwk = issuer.payload.cnf?.jwk as PublicJwk | undefined;

@@ -7,6 +7,7 @@ import { createNetwork, type Entry } from '../lib/network.ts';
 import { createVerifier, type Result } from '../lib/verifier.ts';
 import { createWallet, type PresentationRequest, type StoredCredential } from '../lib/wallet.ts';
 import { renderInside } from './inside.ts';
+import { renderIssuerDetail, renderRequestDetail, renderWalletDetail } from './places.ts';
 
 const CITY = 'https://cityhall.example';
 const CINEMA = 'https://cinema.example';
@@ -89,14 +90,13 @@ function renderWallet() {
   const credential: StoredCredential | undefined = wallet.credentials[0];
   el('wallet-empty').hidden = !!credential;
   el('card').hidden = !credential;
-  el('raw-block').hidden = !credential;
+  if (!credential) el('wallet-detail').hidden = true;
   el('ask').hidden = !pending;
   if (!credential) return;
 
   el('card-name').textContent = credential.name;
   el('card-issuer').textContent = credential.issuerName;
   rows(el('card-claims'), credential.claims);
-  el('raw').textContent = credential.raw.split('~').join('\n~');
 
   if (!pending) return;
   el('ask-who').textContent = verifier.name;
@@ -218,10 +218,25 @@ el<HTMLFormElement>('form').addEventListener('submit', async (event) => {
   el('result').hidden = true;
   el('jump').hidden = true;
   el('inside').hidden = true;
+  el('issuer-detail').hidden = true;
+  el('request-detail').hidden = true;
   status('verifier-status', '');
   try {
     await wallet.receive(offer.uri);
     status('issuer-status', 'Card issued. It is now in your wallet.', 'ok');
+    const credential = wallet.credentials[0];
+    const published = await (await issuer.handle(new Request(`${CITY}/.well-known/jwt-vc-issuer`))).json();
+    const sent = network.log.findLast((entry) => entry.path === '/credential')?.request;
+    await Promise.all([
+      renderIssuerDetail(el('issuer-detail'), {
+        credential: credential.raw,
+        proof: sent ? JSON.parse(sent).proofs?.jwt?.[0] : undefined,
+        issuerJwk: published.jwks.keys[0],
+        keysUrl: `${CITY}/.well-known/jwt-vc-issuer`,
+        label: (name) => labels[name] ?? name,
+      }),
+      renderWalletDetail(el('wallet-detail'), { credential: credential.raw, label: (name) => labels[name] ?? name, show }),
+    ]);
     focus('wallet');
   } catch (error) {
     status('issuer-status', `The card could not be issued: ${(error as Error).message}`, 'error');
@@ -240,6 +255,7 @@ el('buy').addEventListener('click', () => {
   }
   el('jump').hidden = true;
   pending = { request, state };
+  renderRequestDetail(el('request-detail'), { uri, label: (name) => labels[name] ?? name });
   status('verifier-status', 'Waiting for your wallet…');
   focus('wallet');
   renderWallet();

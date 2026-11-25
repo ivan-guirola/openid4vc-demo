@@ -38,6 +38,7 @@
             <button class="btn" type="submit" data-vc="issue">Issue my resident card</button>
           </form>
           <p class="status" data-vc="issuer-status" role="status"></p>
+          <div class="detail" data-vc="issuer-detail" hidden></div>
         </section>
 
         <section class="place wallet" data-vc="wallet">
@@ -62,10 +63,7 @@
               <button class="btn quiet" type="button" data-vc="decline">Decline</button>
             </div>
           </form>
-          <details class="tech" data-vc="raw-block" hidden>
-            <summary>The card as it is stored</summary>
-            <pre data-vc="raw"></pre>
-          </details>
+          <div class="detail" data-vc="wallet-detail" hidden></div>
         </section>
 
         <section class="place" data-vc="verifier">
@@ -76,6 +74,7 @@
           <p>The film is for adults only. The cinema asks your wallet for proof.</p>
           <button class="btn" type="button" data-vc="buy">Buy a ticket</button>
           <p class="status" data-vc="verifier-status" role="status"></p>
+          <div class="detail" data-vc="request-detail" hidden></div>
           <div class="result" data-vc="result" hidden>
             <h3>What the cinema learned</h3>
             <dl data-vc="learned"></dl>
