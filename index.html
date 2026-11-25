@@ -84,26 +84,84 @@
             <h3>What it checked</h3>
             <ul class="checks" data-vc="checks"></ul>
           </div>
-          <details class="tech" data-vc="token-block" hidden>
-            <summary>The token the cinema received</summary>
-            <p class="token-note">
-              One SD-JWT made of three parts joined by <code>~</code>: the card signed by City Hall, the pieces you chose
-              to reveal, and a proof signed by your wallet for this purchase.
-            </p>
-            <h4>As it arrived</h4>
-            <pre class="token-raw" data-vc="token-raw"></pre>
-            <h4>1. The card, signed by City Hall</h4>
-            <p class="token-note">The fields are hidden: only their fingerprints (<code>_sd</code>) travel here.</p>
-            <pre data-vc="token-issuer"></pre>
-            <h4>2. What you revealed</h4>
-            <p class="token-note">Each piece is a salt, a field name and its value. Its fingerprint must be in the card.</p>
-            <pre data-vc="token-disclosures"></pre>
-            <h4>3. The proof from your wallet</h4>
-            <p class="token-note">Signed with the key the card was issued to, for this cinema and this purchase only.</p>
-            <pre data-vc="token-binding"></pre>
-          </details>
+          <p class="jump" data-vc="jump" hidden><a href="#inside">See what travelled inside the token</a></p>
         </section>
       </div>
+
+      <section class="inside" id="inside" data-vc="inside" hidden>
+        <header>
+          <h2>Inside the token</h2>
+          <p class="lead">
+            The real data from your last answer. Nothing here is encrypted: City Hall signs the card, every field is
+            hidden behind a fingerprint, and your wallet signs each answer. The trip itself is protected by HTTPS.
+          </p>
+        </header>
+
+        <div class="block">
+          <h3>Who holds which key</h3>
+          <p class="note">
+            Both keys are ES256: an elliptic curve key pair (P-256) that signs with ECDSA over a SHA-256 hash. The private
+            part signs, the public part only checks.
+          </p>
+          <div class="keys" data-vc="keys"></div>
+        </div>
+
+        <div class="block">
+          <h3>What each party has</h3>
+          <div class="table-wrap"><table class="holds" data-vc="holds"></table></div>
+        </div>
+
+        <div class="block">
+          <h3>Each field of the card</h3>
+          <p class="note">
+            City Hall gave every field a random salt, joined it with the name and the value, and put only the SHA-256
+            fingerprint of that in the card it signed. A fingerprint cannot be turned back into the value, and the salt
+            stops anyone guessing it by trying every date or a simple “true”. Open a field to follow the steps.
+          </p>
+          <ul class="fields" data-vc="fields"></ul>
+        </div>
+
+        <div class="block">
+          <h3>The token the cinema received</h3>
+          <p class="note">
+            One string with three parts joined by <code>~</code>. Each JWT inside is three Base64url pieces joined by a
+            dot: header, content and signature. Base64url only makes the text safe to send; anyone can read it back.
+          </p>
+          <ul class="legend" data-vc="legend"></ul>
+          <pre class="raw" data-vc="parts"></pre>
+          <div class="decoded" data-vc="decoded"></div>
+        </div>
+
+        <div class="block">
+          <h3>How the cinema checks it</h3>
+          <ol class="steps" data-vc="steps"></ol>
+        </div>
+
+        <div class="block" data-vc="tamper-block">
+          <h3>What if the wallet lies?</h3>
+          <p class="note" data-vc="tamper-intro"></p>
+          <button class="btn quiet" type="button" data-vc="tamper">Change it and send again</button>
+          <div class="tampered" data-vc="tampered" hidden></div>
+        </div>
+
+        <div class="block">
+          <h3>What real deployments add</h3>
+          <ul class="plain">
+            <li>
+              The answer to the verifier can also be encrypted for it alone (OpenID4VP <code>direct_post.jwt</code>, a JWE
+              with ECDH-ES), so only the verifier can read it, even where HTTPS ends at a proxy along the way.
+            </li>
+            <li>
+              The card shows the same signature and wallet key to every verifier, so two of them could tell it is the
+              same card. Wallets avoid this by holding several copies of it and using each copy once.
+            </li>
+            <li>
+              The wallet keeps its private key in the phone’s secure hardware, and City Hall can revoke the card through
+              a status list.
+            </li>
+          </ul>
+        </div>
+      </section>
 
       <details class="tech log">
         <summary>What travelled between them <span data-vc="log-count"></span></summary>
@@ -122,6 +180,10 @@
           </li>
           <li>
             <strong>A copy is useless.</strong> Each answer is signed by your wallet for that one request.
+          </li>
+          <li>
+            <strong>Nothing is secret, everything is checkable.</strong> Signatures and fingerprints protect the card,
+            not encryption.
           </li>
         </ul>
         <p>

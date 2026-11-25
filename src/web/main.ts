@@ -6,8 +6,7 @@ import { createIssuer } from '../lib/issuer.ts';
 import { createNetwork, type Entry } from '../lib/network.ts';
 import { createVerifier, type Result } from '../lib/verifier.ts';
 import { createWallet, type PresentationRequest, type StoredCredential } from '../lib/wallet.ts';
-import { decodeJwt } from '../lib/jose.ts';
-import { parseSdJwt } from '../lib/sdjwt.ts';
+import { renderInside } from './inside.ts';
 
 const CITY = 'https://cityhall.example';
 const CINEMA = 'https://cinema.example';
@@ -159,18 +158,33 @@ function receivedToken(): string | undefined {
   }
 }
 
-function renderToken() {
+function logged(path: string) {
+  return network.log.findLast((entry) => entry.path === path);
+}
+
+async function renderInsideToken(request: PresentationRequest) {
   const token = receivedToken();
-  el('token-block').hidden = !token;
-  if (!token) return;
-  const json = (value: unknown) => JSON.stringify(value, null, 2);
-  const { jwt, disclosures, keyBinding } = parseSdJwt(token);
-  el('token-raw').textContent = token.split('~').join('\n~');
-  el('token-issuer').textContent = json(decodeJwt(jwt));
-  el('token-disclosures').textContent = disclosures.length
-    ? disclosures.map((d) => `${d.encoded}\n→ ${JSON.stringify([d.salt, d.name, d.value])}`).join('\n\n')
-    : 'Nothing.';
-  el('token-binding').textContent = keyBinding ? json(decodeJwt(keyBinding)) : 'None.';
+  const credential = wallet.credentials[0];
+  const keys = logged('/.well-known/jwt-vc-issuer');
+  el('jump').hidden = !token;
+  el('inside').hidden = true;
+  if (!token || !credential || !keys) return;
+
+  const issuerJwk = JSON.parse(keys.response).jwks.keys[0];
+  const sent = logged('/credential')?.request;
+  await renderInside(el('inside'), {
+    credential: credential.raw,
+    presentation: token,
+    issuerJwk,
+    issuerName: credential.issuerName,
+    keysUrl: `${keys.origin}${keys.path}`,
+    proof: sent ? JSON.parse(sent).proofs?.jwt?.[0] : undefined,
+    nonce: request.nonce,
+    audience: request.verifier,
+    verifierName: verifier.name,
+    label: (name) => labels[name] ?? name,
+    show,
+  });
 }
 
 function pretty(text: string) {
@@ -202,7 +216,8 @@ el<HTMLFormElement>('form').addEventListener('submit', async (event) => {
   pending = undefined;
   wallet.credentials.length = 0;
   el('result').hidden = true;
-  el('token-block').hidden = true;
+  el('jump').hidden = true;
+  el('inside').hidden = true;
   status('verifier-status', '');
   try {
     await wallet.receive(offer.uri);
@@ -223,7 +238,7 @@ el('buy').addEventListener('click', () => {
     focus('issuer');
     return;
   }
-  el('token-block').hidden = true;
+  el('jump').hidden = true;
   pending = { request, state };
   status('verifier-status', 'Waiting for your wallet…');
   focus('wallet');
@@ -241,13 +256,15 @@ el<HTMLFormElement>('ask').addEventListener('submit', async (event) => {
   await wallet.answer(request, request.matches[0], shared);
   renderWallet();
   renderResult(verifier.result(state), shared);
-  renderToken();
+  await renderInsideToken(request);
   focus('verifier');
 });
 
 el('decline').addEventListener('click', () => {
   pending = undefined;
   renderWallet();
+  el('jump').hidden = true;
+  el('inside').hidden = true;
   status('verifier-status', 'You declined. The cinema learned nothing.');
   focus('verifier');
 });
